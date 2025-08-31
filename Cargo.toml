@@ -1,0 +1,17 @@
+[package]
+name = "steamclipconverter"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+regex = "1"
+clap = { version = "4", features = ["derive"] }
+chrono = { version = "0.4" }
+filetime = "0"
+sanitize-filename = "0.6.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "abort"

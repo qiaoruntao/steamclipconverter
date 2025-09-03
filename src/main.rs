@@ -81,7 +81,7 @@ fn main() {
         p
     } else {
         // No input provided: default to <SteamRoot>/userdata and WARN.
-        let mut candidates = steam_default_root_candidates!();
+        let candidates = steam_default_root_candidates!();
         let chosen_root = candidates
             .iter()
             .find(|p| p.is_dir())
@@ -162,7 +162,7 @@ fn main() {
 
     for clip in clips {
         println!(
-            "\n== {} (appid={}, start={} {}) ==",
+            "== {} (appid={}, start={} {}) ==",
             clip.dir.display(),
             clip.appid,
             clip.date,
@@ -171,7 +171,7 @@ fn main() {
 
         let mpd = clip.dir.join("session.mpd");
         if !mpd.is_file() {
-            eprintln!("  [skip] missing session.mpd");
+            eprintln!("[skip] missing session.mpd");
             continue;
         }
 
@@ -183,7 +183,7 @@ fn main() {
         let fname = format!("{}-{}-{}.mp4", sanitize(&game_name), clip.date, clip.time);
         let out_path = output_dir.join(&fname);
 
-        println!("  -> {}", out_path.display());
+        println!("converting to {}", out_path.display());
 
         // Remux via ffmpeg using the local MPD.
         let status = Command::new("ffmpeg")
@@ -209,35 +209,35 @@ fn main() {
 
         match status {
             Ok(s) if s.success() => {
-                println!("  [ok] wrote {}", out_path.display());
+                println!("[ok] wrote {}", out_path.display());
 
                 // Set file times to the record start time (compact Chrono parse).
                 if let Some(st) = to_systemtime(&clip.date, &clip.time) {
                     let ft = FileTime::from_system_time(st);
                     if let Err(e) = set_file_times(&out_path, ft, ft) {
-                        eprintln!("  [warn] failed to set file times: {}", e);
+                        eprintln!("[warn] failed to set file times: {}", e);
                         std::process::exit(2);
                     }
                 } else {
-                    eprintln!("  [warn] could not parse start time for mtime");
+                    eprintln!("[warn] could not parse start time for mtime");
                     std::process::exit(2);
                 }
 
                 // Delete-after semantics
                 if cli.delete_after {
                     if let Err(e) = fs::remove_dir_all(&clip.dir) {
-                        eprintln!("  [warn] delete failed for {}: {}", clip.dir.display(), e);
+                        eprintln!("[warn] delete failed for {}: {}", clip.dir.display(), e);
                     } else {
-                        println!("  [del] removed {}", clip.dir.display());
+                        println!("[del] removed {}", clip.dir.display());
                         maybe_remove_clip_grandparent(&clip);
                     }
                 }
             }
             Ok(s) => {
-                eprintln!("  [fail] ffmpeg status: {}", s);
+                eprintln!("[fail] ffmpeg status: {}", s);
             }
             Err(e) => {
-                eprintln!("  [fail] launching ffmpeg: {}", e);
+                eprintln!("[fail] launching ffmpeg: {}", e);
             }
         }
     }
@@ -328,8 +328,8 @@ fn maybe_remove_clip_grandparent(clip: &ClipDir) {
         let re = Regex::new(r"^clip_\d+_\d{8}_\d{6}$").unwrap();
         if re.is_match(name) {
             match fs::remove_dir_all(clip_parent) {
-                Ok(_) => println!("  [del] removed {}", clip_parent.display()),
-                Err(e) => eprintln!("  [warn] failed to remove {}: {}", clip_parent.display(), e),
+                Ok(_) => println!("[del] removed {}", clip_parent.display()),
+                Err(e) => eprintln!("[warn] failed to remove {}: {}", clip_parent.display(), e),
             }
         }
     }

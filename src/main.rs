@@ -1,6 +1,6 @@
-use chrono::{Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
 use clap::{ArgAction, Parser};
-use filetime::{FileTime, set_file_times};
+use filetime::{set_file_times, FileTime};
 use regex::Regex;
 use sanitize_filename::sanitize;
 use std::{
@@ -402,14 +402,19 @@ fn parse_acf_name(acf_text: &str) -> Option<String> {
     re.captures(acf_text).map(|c| c[1].to_string())
 }
 
-/// Convert to SystemTime using Chrono, parsing only the extracted parts.
+/// Convert to SystemTime assuming the clip's filename time is in **UTC**.
 /// Inputs are "YYYYMMDD" and "HHMMSS" (already sliced from folder name).
 fn to_systemtime(date8: &str, time6: &str) -> Option<std::time::SystemTime> {
+    use std::time::{Duration, UNIX_EPOCH};
+
     let d = NaiveDate::parse_from_str(date8, "%Y%m%d").ok()?;
     let t = NaiveTime::parse_from_str(time6, "%H%M%S").ok()?;
     let ndt = NaiveDateTime::new(d, t);
-    match Local.from_local_datetime(&ndt).single().unwrap().try_into() {
-        Ok(t) => Some(t),
-        Err(_e) => None,
-    }
+
+    // Filenames are UTC; interpret naivedatetime as UTC then build SystemTime.
+    let dt_utc = Utc.from_utc_datetime(&ndt);
+    let secs = dt_utc.timestamp();
+    let nanos = dt_utc.timestamp_subsec_nanos();
+
+    Some(UNIX_EPOCH + Duration::from_secs(secs as u64) + Duration::from_nanos(nanos as u64))
 }

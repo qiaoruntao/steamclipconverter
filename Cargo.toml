@@ -2,7 +2,16 @@
 name = "steamclipconverter"
 version = "0.1.1"
 edition = "2024"
-
+description = "Convert Steam 'fg_*' DASH clips (session.mpd) into clean MP4 via ffmpeg (stream copy)."
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/qiaoruntao/steamclipconverter"
+homepage = "https://github.com/qiaoruntao/steamclipconverter"
+documentation = "https://github.com/qiaoruntao/steamclipconverter#readme"
+keywords = ["steam", "ffmpeg", "dash", "mp4", "cli"]
+categories = ["command-line-utilities", "multimedia::video"]
+# don't ship CI artifacts to crates.io
+exclude = [".github/*", "dist/*", "artifacts/*", "target/*"]
 [dependencies]
 regex = "1"
 clap = { version = "4", features = ["derive"] }
